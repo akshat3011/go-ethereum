@@ -36,17 +36,17 @@ func makeTestTrie() (*Database, *Trie, map[string][]byte) {
 		// Map the same data under multiple keys
 		key, val := common.LeftPadBytes([]byte{1, i}, 32), []byte{i}
 		content[string(key)] = val
-		trie.Update(key, val)
+		trie.Update(key, val, []byte(""))
 
 		key, val = common.LeftPadBytes([]byte{2, i}, 32), []byte{i}
 		content[string(key)] = val
-		trie.Update(key, val)
+		trie.Update(key, val, []byte(""))
 
 		// Add some other data to inflate the trie
 		for j := byte(3); j < 13; j++ {
 			key, val = common.LeftPadBytes([]byte{j, i}, 32), []byte{j, i}
 			content[string(key)] = val
-			trie.Update(key, val)
+			trie.Update(key, val, []byte(""))
 		}
 	}
 	trie.Commit(nil)

@@ -183,8 +183,8 @@ func (t *Trie) tryGet(origNode node, key []byte, pos int) (value []byte, newnode
 //
 // The value bytes must not be modified by the caller while they are
 // stored in the trie.
-func (t *Trie) Update(key, value []byte) {
-	if err := t.TryUpdate(key, value); err != nil {
+func (t *Trie) Update(key, value []byte, data []byte) {
+	if err := t.TryUpdate(key, value,data); err != nil {
 		log.Error(fmt.Sprintf("Unhandled trie error: %v", err))
 	}
 }
@@ -197,10 +197,10 @@ func (t *Trie) Update(key, value []byte) {
 // stored in the trie.
 //
 // If a node was not found in the database, a MissingNodeError is returned.
-func (t *Trie) TryUpdate(key, value []byte) error {
+func (t *Trie) TryUpdate(key, value []byte,data []byte) error {
 	k := keybytesToHex(key)
 	if len(value) != 0 {
-		_, n, err := t.insert(t.root, nil, k, valueNode(value))
+		_, n, err := t.insert(t.root, nil, k, valueNode(value),data)
 		if err != nil {
 			return err
 		}
@@ -215,12 +215,12 @@ func (t *Trie) TryUpdate(key, value []byte) error {
 	return nil
 }
 
-func (t *Trie) insert(n node, prefix, key []byte, value node) (bool, node, error) {
+func (t *Trie) insert(n node, prefix, key []byte, value node, data []byte) (bool, node, error) {
 	if len(key) == 0 {
 		if v, ok := n.(valueNode); ok {
 			return !bytes.Equal(v, value.(valueNode)), value, nil
 		}
-		return true, value, nil
+		return true, m_valueNode{value,data}, nil
 	}
 	switch n := n.(type) {
 	case *shortNode:

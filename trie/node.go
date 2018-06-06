@@ -45,6 +45,10 @@ type (
 	}
 	hashNode  []byte
 	valueNode []byte
+	m_valueNode struct{	
+		value valueNode
+		extra []byte
+	}
 )
 
 // EncodeRLP encodes a full node into the consensus RLP format.

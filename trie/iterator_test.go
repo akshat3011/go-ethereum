@@ -40,7 +40,7 @@ func TestIterator(t *testing.T) {
 	all := make(map[string]string)
 	for _, val := range vals {
 		all[val.k] = val.v
-		trie.Update([]byte(val.k), []byte(val.v))
+		trie.Update([]byte(val.k), []byte(val.v),[]byte(""))
 	}
 	trie.Commit(nil)
 
@@ -69,8 +69,8 @@ func TestIteratorLargeData(t *testing.T) {
 	for i := byte(0); i < 255; i++ {
 		value := &kv{common.LeftPadBytes([]byte{i}, 32), []byte{i}, false}
 		value2 := &kv{common.LeftPadBytes([]byte{10, i}, 32), []byte{i}, false}
-		trie.Update(value.k, value.v)
-		trie.Update(value2.k, value2.v)
+		trie.Update(value.k, value.v,[]byte(""))
+		trie.Update(value2.k, value2.v,[]byte(""))
 		vals[string(value.k)] = value
 		vals[string(value2.k)] = value2
 	}
@@ -155,7 +155,7 @@ var testdata2 = []kvs{
 func TestIteratorSeek(t *testing.T) {
 	trie := newEmpty()
 	for _, val := range testdata1 {
-		trie.Update([]byte(val.k), []byte(val.v))
+		trie.Update([]byte(val.k), []byte(val.v), []byte(""))
 	}
 
 	// Seek to the middle.
@@ -196,13 +196,13 @@ func checkIteratorOrder(want []kvs, it *Iterator) error {
 func TestDifferenceIterator(t *testing.T) {
 	triea := newEmpty()
 	for _, val := range testdata1 {
-		triea.Update([]byte(val.k), []byte(val.v))
+		triea.Update([]byte(val.k), []byte(val.v), []byte(""))
 	}
 	triea.Commit(nil)
 
 	trieb := newEmpty()
 	for _, val := range testdata2 {
-		trieb.Update([]byte(val.k), []byte(val.v))
+		trieb.Update([]byte(val.k), []byte(val.v), []byte(""))
 	}
 	trieb.Commit(nil)
 
@@ -232,13 +232,13 @@ func TestDifferenceIterator(t *testing.T) {
 func TestUnionIterator(t *testing.T) {
 	triea := newEmpty()
 	for _, val := range testdata1 {
-		triea.Update([]byte(val.k), []byte(val.v))
+		triea.Update([]byte(val.k), []byte(val.v), []byte(""))
 	}
 	triea.Commit(nil)
 
 	trieb := newEmpty()
 	for _, val := range testdata2 {
-		trieb.Update([]byte(val.k), []byte(val.v))
+		trieb.Update([]byte(val.k), []byte(val.v), []byte(""))
 	}
 	trieb.Commit(nil)
 
@@ -279,7 +279,7 @@ func TestUnionIterator(t *testing.T) {
 func TestIteratorNoDups(t *testing.T) {
 	var tr Trie
 	for _, val := range testdata1 {
-		tr.Update([]byte(val.k), []byte(val.v))
+		tr.Update([]byte(val.k), []byte(val.v), []byte(""))
 	}
 	checkIteratorNoDups(t, tr.NodeIterator(nil), nil)
 }
@@ -294,7 +294,7 @@ func testIteratorContinueAfterError(t *testing.T, memonly bool) {
 
 	tr, _ := New(common.Hash{}, triedb)
 	for _, val := range testdata1 {
-		tr.Update([]byte(val.k), []byte(val.v))
+		tr.Update([]byte(val.k), []byte(val.v), []byte(""))
 	}
 	tr.Commit(nil)
 	if !memonly {
@@ -381,7 +381,7 @@ func testIteratorContinueAfterSeekError(t *testing.T, memonly bool) {
 
 	ctr, _ := New(common.Hash{}, triedb)
 	for _, val := range testdata1 {
-		ctr.Update([]byte(val.k), []byte(val.v))
+		ctr.Update([]byte(val.k), []byte(val.v), []byte(""))
 	}
 	root, _ := ctr.Commit(nil)
 	if !memonly {

@@ -32,7 +32,6 @@ type node interface {
 	cache() (hashNode, bool)
 	canUnload(cachegen, cachelimit uint16) bool
 }
-
 type (
 	fullNode struct {
 		Children [17]node // Actual trie node data to encode/decode (needs custom encoder)
@@ -45,9 +44,9 @@ type (
 	}
 	hashNode  []byte
 	valueNode []byte
-	m_valueNode struct{	
-		value valueNode
-		extra []byte
+	modifiedNode struct{	
+		value []byte
+		data []byte
 	}
 )
 
@@ -75,17 +74,21 @@ func (n *fullNode) canUnload(gen, limit uint16) bool  { return n.flags.canUnload
 func (n *shortNode) canUnload(gen, limit uint16) bool { return n.flags.canUnload(gen, limit) }
 func (n hashNode) canUnload(uint16, uint16) bool      { return false }
 func (n valueNode) canUnload(uint16, uint16) bool     { return false }
+func (n modifiedNode) canUnload(uint16, uint16) bool     { return false }
 
 func (n *fullNode) cache() (hashNode, bool)  { return n.flags.hash, n.flags.dirty }
 func (n *shortNode) cache() (hashNode, bool) { return n.flags.hash, n.flags.dirty }
 func (n hashNode) cache() (hashNode, bool)   { return nil, true }
 func (n valueNode) cache() (hashNode, bool)  { return nil, true }
+func (n modifiedNode) cache() (hashNode, bool)  { return nil, true }
 
 // Pretty printing.
 func (n *fullNode) String() string  { return n.fstring("") }
 func (n *shortNode) String() string { return n.fstring("") }
 func (n hashNode) String() string   { return n.fstring("") }
 func (n valueNode) String() string  { return n.fstring("") }
+func (n modifiedNode) String() string  { return n.fstring("") }
+
 
 func (n *fullNode) fstring(ind string) string {
 	resp := fmt.Sprintf("[\n%s  ", ind)
@@ -106,6 +109,9 @@ func (n hashNode) fstring(ind string) string {
 }
 func (n valueNode) fstring(ind string) string {
 	return fmt.Sprintf("%x ", []byte(n))
+}
+func (n modifiedNode) fstring(ind string) string {
+	return fmt.Sprintf("%x ,%x ", []byte(n.value),[]byte(n.data))
 }
 
 func mustDecodeNode(hash, buf []byte, cachegen uint16) node {

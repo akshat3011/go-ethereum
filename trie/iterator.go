@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"container/heap"
 	"errors"
+	
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -31,6 +32,7 @@ type Iterator struct {
 
 	Key   []byte // Current data key on which the iterator is positioned on
 	Value []byte // Current data value on which the iterator is positioned on
+	data  []byte // extra information
 	Err   error
 }
 
@@ -95,6 +97,7 @@ type NodeIterator interface {
 	// is not positioned at a leaf. Callers must not retain references to the value
 	// after calling Next.
 	LeafBlob() []byte
+	LeafData() []byte
 
 	// LeafProof returns the Merkle proof of the leaf. The method panics if the
 	// iterator is not positioned at a leaf. Callers must not retain references
@@ -161,7 +164,7 @@ func (it *nodeIterator) Leaf() bool {
 
 func (it *nodeIterator) LeafKey() []byte {
 	if len(it.stack) > 0 {
-		if _, ok := it.stack[len(it.stack)-1].node.(valueNode); ok {
+		if _, ok := it.stack[len(it.stack)-1].node.(modifiedNode); ok {
 			return hexToKeybytes(it.path)
 		}
 	}
@@ -170,16 +173,26 @@ func (it *nodeIterator) LeafKey() []byte {
 
 func (it *nodeIterator) LeafBlob() []byte {
 	if len(it.stack) > 0 {
-		if node, ok := it.stack[len(it.stack)-1].node.(valueNode); ok {
-			return []byte(node)
+		if node, ok := it.stack[len(it.stack)-1].node.(modifiedNode); ok {
+			return []byte(node.value)
+		}
+	}
+	panic("not at leaf")
+}
+func (it *nodeIterator) LeafData() []byte {
+	if len(it.stack) > 0 {
+		if node, ok := it.stack[len(it.stack)-1].node.(modifiedNode); ok {
+			return []byte(node.data)
 		}
 	}
 	panic("not at leaf")
 }
 
+
+
 func (it *nodeIterator) LeafProof() [][]byte {
 	if len(it.stack) > 0 {
-		if _, ok := it.stack[len(it.stack)-1].node.(valueNode); ok {
+		if _, ok := it.stack[len(it.stack)-1].node.(modifiedNode); ok {
 			hasher := newHasher(0, 0, nil)
 			proofs := make([][]byte, 0, len(it.stack))
 
@@ -367,8 +380,14 @@ func compareNodes(a, b NodeIterator) int {
 		return cmp
 	}
 	if a.Leaf() && b.Leaf() {
-		return bytes.Compare(a.LeafBlob(), b.LeafBlob())
+		
+		 return bytes.Compare(append(a.LeafBlob(),a.LeafData()...), append(b.LeafBlob(),b.LeafData()...)) //== 1{  
+		 	//if bytes.Compare(a.LeafData(), b.LeafData()) ==1{
+		 	//	return 1
+		 	//}
+		// }
 	}
+
 	return 0
 }
 
@@ -409,7 +428,9 @@ func (it *differenceIterator) LeafKey() []byte {
 func (it *differenceIterator) LeafBlob() []byte {
 	return it.b.LeafBlob()
 }
-
+func (it *differenceIterator) LeafData() []byte {
+	return it.b.LeafData()
+}
 func (it *differenceIterator) LeafProof() [][]byte {
 	return it.b.LeafProof()
 }
@@ -516,7 +537,9 @@ func (it *unionIterator) LeafKey() []byte {
 func (it *unionIterator) LeafBlob() []byte {
 	return (*it.items)[0].LeafBlob()
 }
-
+func (it *unionIterator) LeafData() []byte {
+	return (*it.items)[0].LeafData()
+}
 func (it *unionIterator) LeafProof() [][]byte {
 	return (*it.items)[0].LeafProof()
 }

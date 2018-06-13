@@ -131,7 +131,7 @@ func (h *hasher) hashChildren(original node, db *Database) (node, node, error) {
 		collapsed.Key = hexToCompact(n.Key)
 		cached.Key = common.CopyBytes(n.Key)
 
-		if _, ok := n.Val.(valueNode); !ok {
+		if _, ok := n.Val.(modifiedNode); !ok {
 			collapsed.Val, cached.Val, err = h.hash(n.Val, db, false)
 			if err != nil {
 				return original, original, err

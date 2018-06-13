@@ -22,7 +22,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethdb"
-	"fmt"
 )
 
 // makeTestTrie create a sample test trie to test node-wise reconstruction.
@@ -30,30 +29,26 @@ func makeTestTrie() (*Database, *Trie, map[string][]byte) {
 	// Create an empty trie
 	triedb := NewDatabase(ethdb.NewMemDatabase())
 	trie, _ := New(common.Hash{}, triedb)
-	
-	// Fill it with some arbitrary data    255
+
+	// Fill it with some arbitrary data
 	content := make(map[string][]byte)
-	for i := byte(0); i < 5; i++ {
+	for i := byte(0); i < 255; i++ {
 		// Map the same data under multiple keys
 		key, val := common.LeftPadBytes([]byte{1, i}, 32), []byte{i}
 		content[string(key)] = val
-		trie.Update(key, val, []byte("man"))
-
+		trie.Update(key, val)
 
 		key, val = common.LeftPadBytes([]byte{2, i}, 32), []byte{i}
 		content[string(key)] = val
-		trie.Update(key, val, []byte("dog"))
-	
+		trie.Update(key, val)
 
-		// Add some other data to inflate the trie     13
-		for j := byte(3); j < 5; j++ {
+		// Add some other data to inflate the trie
+		for j := byte(3); j < 13; j++ {
 			key, val = common.LeftPadBytes([]byte{j, i}, 32), []byte{j, i}
 			content[string(key)] = val
-			trie.Update(key, val, []byte("cat"))
+			trie.Update(key, val)
 		}
 	}
-
-
 	trie.Commit(nil)
 
 	// Return the generated trie
@@ -72,8 +67,7 @@ func checkTrieContents(t *testing.T, db *Database, root []byte, content map[stri
 		t.Fatalf("inconsistent trie at %x: %v", root, err)
 	}
 	for key, val := range content {
-
-		if have,_ := trie.Get([]byte(key)); !bytes.Equal(have, val) {
+		if have := trie.Get([]byte(key)); !bytes.Equal(have, val) {
 			t.Errorf("entry %x: content mismatch: have %x, want %x", key, have, val)
 		}
 	}
@@ -128,8 +122,6 @@ func testIterativeSync(t *testing.T, batch int) {
 			if err != nil {
 				t.Fatalf("failed to retrieve node data for %x: %v", hash, err)
 			}
-			fmt.Println("welcome home")
-			fmt.Println(data)
 			results[i] = SyncResult{hash, data}
 		}
 		if _, index, err := sched.Process(results); err != nil {

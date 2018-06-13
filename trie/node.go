@@ -152,7 +152,10 @@ func decodeShort(hash, elems []byte, cachegen uint16) (node, error) {
 	key := compactToHex(kbuf)
 	if hasTerm(key) {
 		// value node
-		val, _, err := rlp.SplitString(rest)
+		//fmt.Println(rest)
+		val, _, err := rlp.SplitList(rest)
+		//mvalNode = decodeModified(hash,val )
+
 		if err != nil {
 			return nil, fmt.Errorf("invalid value node: %v", err)
 		}
@@ -164,6 +167,23 @@ func decodeShort(hash, elems []byte, cachegen uint16) (node, error) {
 	}
 	return &shortNode{key, r, flag}, nil
 }
+
+
+//func  decodeModified(hash, elems []byte, cachegen uint16) (node, error){
+	//value, data, err := rlp.SplitString(elems)
+	//fmt.Println("aa")
+	//fmt.Println(value)
+
+
+//}
+
+
+
+
+
+
+
+
 
 func decodeFull(hash, elems []byte, cachegen uint16) (*fullNode, error) {
 	n := &fullNode{flags: nodeFlag{hash: hash, gen: cachegen}}

@@ -65,18 +65,18 @@ func NewSecure(root common.Hash, db *Database, cachelimit uint16) (*SecureTrie, 
 
 // Get returns the value for key stored in the trie.
 // The value bytes must not be modified by the caller.
-func (t *SecureTrie) Get(key []byte) []byte {
-	res, err := t.TryGet(key)
+func (t *SecureTrie) Get(key []byte) ([]byte, []byte) {
+	res,data,err := t.TryGet(key)
 	if err != nil {
 		log.Error(fmt.Sprintf("Unhandled trie error: %v", err))
 	}
-	return res
+	return res, data
 }
 
 // TryGet returns the value for key stored in the trie.
 // The value bytes must not be modified by the caller.
 // If a node was not found in the database, a MissingNodeError is returned.
-func (t *SecureTrie) TryGet(key []byte) ([]byte, error) {
+func (t *SecureTrie) TryGet(key []byte) ([]byte, []byte, error) {
 	return t.trie.TryGet(t.hashKey(key))
 }
 
@@ -86,8 +86,8 @@ func (t *SecureTrie) TryGet(key []byte) ([]byte, error) {
 //
 // The value bytes must not be modified by the caller while they are
 // stored in the trie.
-func (t *SecureTrie) Update(key, value []byte) {
-	if err := t.TryUpdate(key, value); err != nil {
+func (t *SecureTrie) Update(key, value []byte, data []byte) {
+	if err := t.TryUpdate(key, value,data); err != nil {
 		log.Error(fmt.Sprintf("Unhandled trie error: %v", err))
 	}
 }
@@ -100,9 +100,9 @@ func (t *SecureTrie) Update(key, value []byte) {
 // stored in the trie.
 //
 // If a node was not found in the database, a MissingNodeError is returned.
-func (t *SecureTrie) TryUpdate(key, value []byte) error {
+func (t *SecureTrie) TryUpdate(key, value []byte, data []byte) error {
 	hk := t.hashKey(key)
-	err := t.trie.TryUpdate(hk, value)
+	err := t.trie.TryUpdate(hk, value, data)
 	if err != nil {
 		return err
 	}

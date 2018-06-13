@@ -19,6 +19,7 @@ package rlp
 import (
 	"io"
 	"reflect"
+	//"fmt"
 )
 
 // RawValue represents an encoded RLP value and can be used to delay
@@ -84,6 +85,7 @@ func CountValues(b []byte) (int, error) {
 }
 
 func readKind(buf []byte) (k Kind, tagsize, contentsize uint64, err error) {
+
 	if len(buf) == 0 {
 		return 0, 0, 0, io.ErrUnexpectedEOF
 	}

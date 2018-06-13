@@ -119,59 +119,61 @@ func (t *Trie) NodeIterator(start []byte) NodeIterator {
 
 // Get returns the value for key stored in the trie.
 // The value bytes must not be modified by the caller.
-func (t *Trie) Get(key []byte) []byte {
-	res, err := t.TryGet(key)
+func (t *Trie) Get(key []byte) (res []byte, data []byte) {
+	res,data,err := t.TryGet(key)
 	if err != nil {
 		log.Error(fmt.Sprintf("Unhandled trie error: %v", err))
 	}
-	return res
+	return res,data
 }
 
 // TryGet returns the value for key stored in the trie.
 // The value bytes must not be modified by the caller.
 // If a node was not found in the database, a MissingNodeError is returned.
-func (t *Trie) TryGet(key []byte) ([]byte, error) {
+func (t *Trie) TryGet(key []byte) ([]byte,[]byte, error) {
 	key = keybytesToHex(key)
-	value, newroot, didResolve, err := t.tryGet(t.root, key, 0)
+	value, data, newroot, didResolve, err := t.tryGet(t.root, key, 0)
 	if err == nil && didResolve {
 		t.root = newroot
 	}
-	return value, err
+	return value, data, err
 }
 
-func (t *Trie) tryGet(origNode node, key []byte, pos int) (value []byte, newnode node, didResolve bool, err error) {
+func (t *Trie) tryGet(origNode node, key []byte, pos int) (value []byte,data []byte,newnode node, didResolve bool, err error) {
 	switch n := (origNode).(type) {
 	case nil:
-		return nil, nil, false, nil
+		return nil, nil, nil, false, nil
+	case modifiedNode:
+		return n.value,n.data,n,false,nil
 	case valueNode:
-		return n, n, false, nil
+		return n,nil,n, false, nil
 	case *shortNode:
 		if len(key)-pos < len(n.Key) || !bytes.Equal(n.Key, key[pos:pos+len(n.Key)]) {
 			// key not found in trie
-			return nil, n, false, nil
+			return nil,nil, n, false, nil
 		}
-		value, newnode, didResolve, err = t.tryGet(n.Val, key, pos+len(n.Key))
+		value,data,newnode, didResolve, err = t.tryGet(n.Val, key, pos+len(n.Key))
 		if err == nil && didResolve {
 			n = n.copy()
 			n.Val = newnode
 			n.flags.gen = t.cachegen
 		}
-		return value, n, didResolve, err
+		return value,data, n, didResolve, err
 	case *fullNode:
-		value, newnode, didResolve, err = t.tryGet(n.Children[key[pos]], key, pos+1)
+		value,data, newnode, didResolve, err = t.tryGet(n.Children[key[pos]], key, pos+1)
 		if err == nil && didResolve {
 			n = n.copy()
 			n.flags.gen = t.cachegen
 			n.Children[key[pos]] = newnode
 		}
-		return value, n, didResolve, err
+		return value,data, n, didResolve, err
 	case hashNode:
 		child, err := t.resolveHash(n, key[:pos])
 		if err != nil {
-			return nil, n, true, err
+			return nil, nil, n, true, err
 		}
-		value, newnode, _, err := t.tryGet(child, key, pos)
-		return value, newnode, true, err
+		value,data, newnode, _, err := t.tryGet(child, key, pos)
+		return value,data, newnode, true, err
 	default:
 		panic(fmt.Sprintf("%T: invalid node: %v", origNode, origNode))
 	}
@@ -183,8 +185,8 @@ func (t *Trie) tryGet(origNode node, key []byte, pos int) (value []byte, newnode
 //
 // The value bytes must not be modified by the caller while they are
 // stored in the trie.
-func (t *Trie) Update(key, value []byte) {
-	if err := t.TryUpdate(key, value); err != nil {
+func (t *Trie) Update(key, value []byte,data []byte) {
+	if err := t.TryUpdate(key, value,data); err != nil {
 		log.Error(fmt.Sprintf("Unhandled trie error: %v", err))
 	}
 }
@@ -197,9 +199,8 @@ func (t *Trie) Update(key, value []byte) {
 // stored in the trie.
 //
 // If a node was not found in the database, a MissingNodeError is returned.
-func (t *Trie) TryUpdate(key, value []byte) error {
+func (t *Trie) TryUpdate(key, value []byte,data []byte) error {
 	k := keybytesToHex(key)
-	var data = []byte("skye")
 	if len(value) != 0 {
 		_, n, err := t.insert(t.root, nil, k, modifiedNode{value,data})
 		if err != nil {
@@ -219,7 +220,7 @@ func (t *Trie) TryUpdate(key, value []byte) error {
 func (t *Trie) insert(n node, prefix, key []byte, value node) (bool, node, error) {
 	if len(key) == 0 {
 		if v, ok := n.(modifiedNode); ok {
-			return !bytes.Equal(v.value, value.(modifiedNode).value), value, nil
+			return !bytes.Equal(v.value, value.(modifiedNode).value), value, nil             //check
 		}
 		return true, value, nil
 	}
@@ -284,6 +285,8 @@ func (t *Trie) insert(n node, prefix, key []byte, value node) (bool, node, error
 		panic(fmt.Sprintf("%T: invalid node: %v", n, n))
 	}
 }
+
+
 
 // Delete removes any existing value for key from the trie.
 func (t *Trie) Delete(key []byte) {
@@ -392,6 +395,8 @@ func (t *Trie) delete(n node, prefix, key []byte) (bool, node, error) {
 		return true, n, nil
 
 	case valueNode:
+	    return true, nil, nil
+	case modifiedNode:
 		return true, nil, nil
 
 	case nil:

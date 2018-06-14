@@ -19,7 +19,7 @@ package trie
 import (
 	"sync"
 	"time"
-	"fmt"
+	//"fmt"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethdb"
@@ -161,11 +161,11 @@ func (db *Database) Node(hash common.Hash) ([]byte, error) {
 	db.lock.RUnlock()
 
 	if node != nil {
-		fmt.Println("ashes")
+		
 
 		return node.blob, nil
 	}
-	fmt.Println(db.diskdb.Get(hash[:]))
+	
 
 	// Content unavailable in memory, attempt to retrieve from disk
 	return db.diskdb.Get(hash[:])

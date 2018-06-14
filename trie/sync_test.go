@@ -22,7 +22,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethdb"
-	"fmt"
+	//"fmt"
 )
 
 // makeTestTrie create a sample test trie to test node-wise reconstruction.
@@ -33,8 +33,15 @@ func makeTestTrie() (*Database, *Trie, map[string][]byte) {
 	
 	// Fill it with some arbitrary data    255
 	content := make(map[string][]byte)
-	for i := byte(0); i < 5; i++ {
+	/*trie.Update([]byte("cat"), []byte("billi"), []byte("man"))
+	trie.Update([]byte("car"), []byte("gadi"), []byte("man"))
+	//trie.Update([]byte("can"), []byte("killer"), []byte("dabba"))
+		content["cat"] = []byte("billi")
+		content["car"] = []byte("gadi")
+		//content["can"] = []byte("killer")*/
+		
 		// Map the same data under multiple keys
+		for i := byte(0); i < 255; i++ {
 		key, val := common.LeftPadBytes([]byte{1, i}, 32), []byte{i}
 		content[string(key)] = val
 		trie.Update(key, val, []byte("man"))
@@ -46,7 +53,7 @@ func makeTestTrie() (*Database, *Trie, map[string][]byte) {
 	
 
 		// Add some other data to inflate the trie     13
-		for j := byte(3); j < 5; j++ {
+		for j := byte(3); j < 13; j++ {
 			key, val = common.LeftPadBytes([]byte{j, i}, 32), []byte{j, i}
 			content[string(key)] = val
 			trie.Update(key, val, []byte("cat"))
@@ -128,8 +135,7 @@ func testIterativeSync(t *testing.T, batch int) {
 			if err != nil {
 				t.Fatalf("failed to retrieve node data for %x: %v", hash, err)
 			}
-			fmt.Println("welcome home")
-			fmt.Println(data)
+			
 			results[i] = SyncResult{hash, data}
 		}
 		if _, index, err := sched.Process(results); err != nil {

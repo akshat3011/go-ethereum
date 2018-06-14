@@ -47,11 +47,12 @@ func TestGet(t *testing.T) {
 	updateString(trie, "dogglesworth", "cat","meow")
 	trie.Commit(nil)
 	for i := 0; i < 2; i++ {
-		res,data := getString(trie, "dog")
-		if !bytes.Equal(res, []byte("puppy")) {
+		res,data := getString(trie, "dogglesworth")
+		if !bytes.Equal(res, []byte("cat")) {
 			t.Errorf("expected puppy got %x", res)
 		}
 		fmt.Println("here is data")
+		fmt.Println(string(res))
 		fmt.Println(string(data))
 		if i == 1 {
 			return

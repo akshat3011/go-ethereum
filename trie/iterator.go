@@ -164,7 +164,7 @@ func (it *nodeIterator) Leaf() bool {
 
 func (it *nodeIterator) LeafKey() []byte {
 	if len(it.stack) > 0 {
-		if _, ok := it.stack[len(it.stack)-1].node.(modifiedNode); ok {
+		if _, ok := it.stack[len(it.stack)-1].node.(valueNode); ok {
 			return hexToKeybytes(it.path)
 		}
 	}
@@ -173,16 +173,16 @@ func (it *nodeIterator) LeafKey() []byte {
 
 func (it *nodeIterator) LeafBlob() []byte {
 	if len(it.stack) > 0 {
-		if node, ok := it.stack[len(it.stack)-1].node.(modifiedNode); ok {
-			return []byte(node.value)
+		if node, ok := it.stack[len(it.stack)-1].node.(valueNode); ok {
+			return []byte(node)
 		}
 	}
 	panic("not at leaf")
 }
 func (it *nodeIterator) LeafData() []byte {
 	if len(it.stack) > 0 {
-		if node, ok := it.stack[len(it.stack)-1].node.(modifiedNode); ok {
-			return []byte(node.data)
+		if node, ok := it.stack[len(it.stack)-1].node.(valueNode); ok {
+			return []byte(node)
 		}
 	}
 	panic("not at leaf")
@@ -192,7 +192,7 @@ func (it *nodeIterator) LeafData() []byte {
 
 func (it *nodeIterator) LeafProof() [][]byte {
 	if len(it.stack) > 0 {
-		if _, ok := it.stack[len(it.stack)-1].node.(modifiedNode); ok {
+		if _, ok := it.stack[len(it.stack)-1].node.(valueNode); ok {
 			hasher := newHasher(0, 0, nil)
 			proofs := make([][]byte, 0, len(it.stack))
 

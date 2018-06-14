@@ -143,8 +143,8 @@ func (t *Trie) tryGet(origNode node, key []byte, pos int) (value []byte,data []b
 	switch n := (origNode).(type) {
 	case nil:
 		return nil, nil, nil, false, nil
-	case modifiedNode:
-		return n.value,n.data,n,false,nil
+	//case modifiedNode:
+		//return n.value,n.data,n,false,nil
 	case valueNode:
 		return n,nil,n, false, nil
 	case *shortNode:
@@ -160,6 +160,11 @@ func (t *Trie) tryGet(origNode node, key []byte, pos int) (value []byte,data []b
 		}
 		return value,data, n, didResolve, err
 	case *fullNode:
+		if pos == len(key){
+			return n.Children[0].(*shortNode).Val.(valueNode), n.Children[1].(*shortNode).Val.(valueNode), n, false, nil
+			//return n.Children[0], n.Children[1], n , false, nil
+			}
+
 		value,data, newnode, didResolve, err = t.tryGet(n.Children[key[pos]], key, pos+1)
 		if err == nil && didResolve {
 			n = n.copy()
@@ -202,7 +207,15 @@ func (t *Trie) Update(key, value []byte,data []byte) {
 func (t *Trie) TryUpdate(key, value []byte,data []byte) error {
 	k := keybytesToHex(key)
 	if len(value) != 0 {
-		_, n, err := t.insert(t.root, nil, k, modifiedNode{value,data})
+		var myKey[]byte
+		f := &fullNode{}
+		//term:=42
+		//f = f.copy()
+		//f.flags = t.newFlag()
+		f.Children[0] = &shortNode{append(myKey,16),append(valueNode{}, value...),t.newFlag()}
+		f.Children[1] = &shortNode{append(myKey,16),append(valueNode{}, data...),t.newFlag()}
+
+		_, n, err := t.insert(t.root, nil, k, f)
 		if err != nil {
 			return err
 		}
@@ -219,8 +232,8 @@ func (t *Trie) TryUpdate(key, value []byte,data []byte) error {
 
 func (t *Trie) insert(n node, prefix, key []byte, value node) (bool, node, error) {
 	if len(key) == 0 {
-		if v, ok := n.(modifiedNode); ok {
-			return !bytes.Equal(v.value, value.(modifiedNode).value), value, nil             //check
+		if v, ok := n.(valueNode); ok {
+			return !bytes.Equal(v, value.(valueNode)), value, nil             //check
 		}
 		return true, value, nil
 	}
@@ -396,8 +409,8 @@ func (t *Trie) delete(n node, prefix, key []byte) (bool, node, error) {
 
 	case valueNode:
 	    return true, nil, nil
-	case modifiedNode:
-		return true, nil, nil
+	//case modifiedNode:
+		//return true, nil, nil
 
 	case nil:
 		return false, nil, nil

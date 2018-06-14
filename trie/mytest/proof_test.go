@@ -78,7 +78,7 @@ func TestProof(t *testing.T) {
 
 func TestOneElementProof(t *testing.T) {
 	trie := new(Trie)
-	updateString(trie, "k", "v")
+	updateString(trie, "k", "v","d")
 	for i, prover := range makeProvers(trie) {
 		proof := prover([]byte("k"))
 		if proof == nil {
@@ -124,7 +124,7 @@ func TestBadProof(t *testing.T) {
 // entry trie and checks for missing keys both before and after the single entry.
 func TestMissingKeyProof(t *testing.T) {
 	trie := new(Trie)
-	updateString(trie, "k", "v")
+	updateString(trie, "k", "v","d")
 
 	for i, key := range []string{"a", "j", "l", "z"} {
 		proof := ethdb.NewMemDatabase()
@@ -198,14 +198,14 @@ func randomTrie(n int) (*Trie, map[string]*kv) {
 	for i := byte(0); i < 100; i++ {
 		value := &kv{common.LeftPadBytes([]byte{i}, 32), []byte{i}, false}
 		value2 := &kv{common.LeftPadBytes([]byte{i + 10}, 32), []byte{i}, false}
-		trie.Update(value.k, value.v)
-		trie.Update(value2.k, value2.v)
+		trie.Update(value.k, value.v,[]byte("can"))
+		trie.Update(value2.k, value2.v,[]byte("can"))
 		vals[string(value.k)] = value
 		vals[string(value2.k)] = value2
 	}
 	for i := 0; i < n; i++ {
 		value := &kv{randBytes(32), randBytes(20), false}
-		trie.Update(value.k, value.v)
+		trie.Update(value.k, value.v,[]byte("can"))
 		vals[string(value.k)] = value
 	}
 	return trie, vals

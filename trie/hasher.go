@@ -146,7 +146,7 @@ func (h *hasher) hashChildren(original node, db *Database) (node, node, error) {
 		// Hash the full node's children, caching the newly hashed subtrees
 		collapsed, cached := n.copy(), n.copy()
 
-		for i := 0; i < 16; i++ {
+		for i := 0; i <= 16; i++ {                   // akshat :- even value node of a fullnode will have a fullnode as value
 			if n.Children[i] != nil {
 				collapsed.Children[i], cached.Children[i], err = h.hash(n.Children[i], db, false)
 				if err != nil {
@@ -156,10 +156,10 @@ func (h *hasher) hashChildren(original node, db *Database) (node, node, error) {
 				collapsed.Children[i] = valueNode(nil) // Ensure that nil children are encoded as empty strings.
 			}
 		}
-		cached.Children[16] = n.Children[16]
+		/*cached.Children[16] = n.Children[16]
 		if collapsed.Children[16] == nil {
 			collapsed.Children[16] = valueNode(nil)
-		}
+		}*/
 		return collapsed, cached, nil
 
 	default:

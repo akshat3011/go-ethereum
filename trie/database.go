@@ -183,7 +183,7 @@ func (db *Database) preimage(hash common.Hash) ([]byte, error) {
 		return preimage, nil
 	}
 	// Content unavailable in memory, attempt to retrieve from disk
-	return db.diskdb.Get(db.secureKey(hash[:]))
+	return db.diskdb.Get(db.secureKey(hash[:]))	
 }
 
 // secureKey returns the database key for the preimage of key, as an ephemeral

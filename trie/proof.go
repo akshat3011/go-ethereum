@@ -106,6 +106,7 @@ func VerifyProof(rootHash common.Hash, key []byte, proofDb DatabaseReader) (valu
 	key = keybytesToHex(key)
 	wantHash := rootHash
 	for i := 0; ; i++ {
+		//print("getrekt")
 		buf, _ := proofDb.Get(wantHash[:])
 		if buf == nil {
 			return nil, i, fmt.Errorf("proof node %d (hash %064x) missing", i, wantHash)
@@ -114,7 +115,9 @@ func VerifyProof(rootHash common.Hash, key []byte, proofDb DatabaseReader) (valu
 		if err != nil {
 			return nil, i, fmt.Errorf("bad proof node %d: %v", i, err)
 		}
+			// /fmt.Println("sds")
 		keyrest, cld := get(n, key)
+
 		switch cld := cld.(type) {
 		case nil:
 			// The trie doesn't contain the key.
@@ -132,14 +135,22 @@ func get(tn node, key []byte) ([]byte, node) {
 	for {
 		switch n := tn.(type) {
 		case *shortNode:
+			fmt.Println("snode")
+
 			if len(key) < len(n.Key) || !bytes.Equal(n.Key, key[:len(n.Key)]) {
 				return nil, nil
 			}
 			tn = n.Val
 			key = key[len(n.Key):]
 		case *fullNode:
+			fmt.Println("fnode")
+			if len(key)==0{
+				tn=n.Children[1]
+			}else{
 			tn = n.Children[key[0]]
 			key = key[1:]
+			}
+		
 		case hashNode:
 			return key, n
 		case nil:

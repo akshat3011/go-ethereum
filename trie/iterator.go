@@ -20,7 +20,7 @@ import (
 	"bytes"
 	"container/heap"
 	"errors"
-	
+	"fmt"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -159,12 +159,23 @@ func (it *nodeIterator) Parent() common.Hash {
 }
 
 func (it *nodeIterator) Leaf() bool {
-	return hasTerm(it.path)
+	
+	if len(it.stack) > 0 {
+		n := it.stack[len(it.stack)-1].node
+		switch n.(type) {
+			case *fullNode:
+					return (hasTerm(it.path))
+			
+		}
+		return false
+	}
+	return (hasTerm(it.path))
+
 }
 
 func (it *nodeIterator) LeafKey() []byte {
 	if len(it.stack) > 0 {
-		if _, ok := it.stack[len(it.stack)-1].node.(valueNode); ok {
+		if _, ok := it.stack[len(it.stack)-1].node.(*fullNode); ok {         //akshat - now leaves are logically full nodes
 			return hexToKeybytes(it.path)
 		}
 	}
@@ -173,7 +184,7 @@ func (it *nodeIterator) LeafKey() []byte {
 
 func (it *nodeIterator) LeafBlob() []byte {
 	if len(it.stack) > 0 {
-		if node, ok := it.stack[len(it.stack)-1].node.(valueNode); ok {
+		if node, ok := it.stack[len(it.stack)-1].node.(*fullNode).Children[0].(*shortNode).Val.(valueNode); ok {           // akshat:- leaves value is 0th child shortnode value
 			return []byte(node)
 		}
 	}
@@ -181,7 +192,7 @@ func (it *nodeIterator) LeafBlob() []byte {
 }
 func (it *nodeIterator) LeafData() []byte {
 	if len(it.stack) > 0 {
-		if node, ok := it.stack[len(it.stack)-1].node.(valueNode); ok {
+		if node, ok := it.stack[len(it.stack)-1].node.(*fullNode).Children[1].(*shortNode).Val.(valueNode); ok {
 			return []byte(node)
 		}
 	}
@@ -381,11 +392,7 @@ func compareNodes(a, b NodeIterator) int {
 	}
 	if a.Leaf() && b.Leaf() {
 		
-		 return bytes.Compare(append(a.LeafBlob(),a.LeafData()...), append(b.LeafBlob(),b.LeafData()...)) //== 1{  
-		 	//if bytes.Compare(a.LeafData(), b.LeafData()) ==1{
-		 	//	return 1
-		 	//}
-		// }
+		 return bytes.Compare(append(a.LeafBlob(),a.LeafData()...), append(b.LeafBlob(),b.LeafData()...))        //akshat - to compare leaves we compare both data and value
 	}
 
 	return 0

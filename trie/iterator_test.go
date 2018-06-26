@@ -232,13 +232,13 @@ func TestDifferenceIterator(t *testing.T) {
 func TestUnionIterator(t *testing.T) {
 	triea := newEmpty()
 	for _, val := range testdata1 {
-		triea.Update([]byte(val.k), []byte(val.v),[]byte("cat11"))
+		triea.Update([]byte(val.k), []byte(val.v),[]byte("cat"))
 	}
 	triea.Commit(nil)
 
 	trieb := newEmpty()
 	for _, val := range testdata2 {
-		trieb.Update([]byte(val.k), []byte(val.v),[]byte("cat12"))
+		trieb.Update([]byte(val.k), []byte(val.v),[]byte("cat"))
 	}
 	trieb.Commit(nil)
 
@@ -294,13 +294,14 @@ func testIteratorContinueAfterError(t *testing.T, memonly bool) {
 
 	tr, _ := New(common.Hash{}, triedb)
 	for _, val := range testdata1 {
-		tr.Update([]byte(val.k), []byte(val.v),[]byte("doggo"))
+		tr.Update([]byte(val.k), []byte(val.v),[]byte("kill"))
 	}
 	tr.Commit(nil)
 	if !memonly {
 		triedb.Commit(tr.Hash(), true)
 	}
 	wantNodeCount := checkIteratorNoDups(t, tr.NodeIterator(nil), nil)
+
 
 	var (
 		diskKeys [][]byte
@@ -311,10 +312,12 @@ func testIteratorContinueAfterError(t *testing.T, memonly bool) {
 	} else {
 		diskKeys = diskdb.Keys()
 	}
+    
 	for i := 0; i < 20; i++ {
 		// Create trie that will load all nodes from DB.
 		tr, _ := New(tr.Hash(), triedb)
-
+		//fmt.Println(i)
+		checkIteratorNoDups(t, tr.NodeIterator(nil), nil)
 		// Remove a random node from the database. It can't be the root node
 		// because that one is already loaded.
 		var (
@@ -332,29 +335,49 @@ func testIteratorContinueAfterError(t *testing.T, memonly bool) {
 				break
 			}
 		}
+			//v,_ := tr.Get([]byte('bar'))
+			// /fmt.Println(v)
 		if memonly {
 			robj = triedb.nodes[rkey]
 			delete(triedb.nodes, rkey)
 		} else {
+			//fmt.Println("i sasa")
 			rval, _ = diskdb.Get(rkey[:])
+			//fmt.Println(string(rval))
+		//	fmt.Println("i sasa22")
 			diskdb.Delete(rkey[:])
+			//fmt.Println(diskdb.Get(rkey[:]))
+			//fmt.Println("i sasa22")
+
 		}
 		// Iterate until the error is hit.
 		seen := make(map[string]bool)
 		it := tr.NodeIterator(nil)
 		checkIteratorNoDups(t, it, seen)
+		//fmt.Println("littlebit dangeroey")
 		missing, ok := it.Error().(*MissingNodeError)
+
+
 		if !ok || missing.NodeHash != rkey {
 			t.Fatal("didn't hit missing node, got", it.Error())
 		}
-
 		// Add the node back and continue iteration.
+		//fmt.Println("littlebit dangeroey")
+
 		if memonly {
 			triedb.nodes[rkey] = robj
 		} else {
+			//fmt.Println("littlebit adasd")
 			diskdb.Put(rkey[:], rval)
+			//rval1, _ := diskdb.Get(rkey[:])
+
+
+
 		}
+		//fmt.Println("212")
 		checkIteratorNoDups(t, it, seen)
+		//fmt.Println("22")
+
 		if it.Error() != nil {
 			t.Fatal("unexpected error", it.Error())
 		}
@@ -422,14 +445,17 @@ func testIteratorContinueAfterSeekError(t *testing.T, memonly bool) {
 }
 
 func checkIteratorNoDups(t *testing.T, it NodeIterator, seen map[string]bool) int {
+	//fmt.Println(seen)
 	if seen == nil {
 		seen = make(map[string]bool)
 	}
 	for it.Next(true) {
+		//fmt.Println(it.Path())
 		if seen[string(it.Path())] {
 			t.Fatalf("iterator visited node path %x twice", it.Path())
 		}
 		seen[string(it.Path())] = true
 	}
+	//fmt.Println(len(seen))
 	return len(seen)
 }

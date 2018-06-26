@@ -130,7 +130,7 @@ func (t *Trie) Get(key []byte) (res []byte, data []byte) {
 // TryGet returns the value for key stored in the trie.
 // The value bytes must not be modified by the caller.
 // If a node was not found in the database, a MissingNodeError is returned.
-func (t *Trie) TryGet(key []byte) ([]byte,[]byte, error) {
+func (t *Trie) TryGet(key []byte) ([]byte,[]byte, error) {                          
 	key = keybytesToHex(key)
 	value, data, newroot, didResolve, err := t.tryGet(t.root, key, 0)
 	if err == nil && didResolve {
@@ -143,13 +143,10 @@ func (t *Trie) tryGet(origNode node, key []byte, pos int) (value []byte,data []b
 	switch n := (origNode).(type) {
 	case nil:
 		return nil, nil, nil, false, nil
-	//case modifiedNode:
-		//return n.value,n.data,n,false,nil
 	case valueNode:
 		return n,nil,n, false, nil
 	case *shortNode:
 		if len(key)-pos < len(n.Key) || !bytes.Equal(n.Key, key[pos:pos+len(n.Key)]) {
-			// key not found in trie
 			return nil,nil, n, false, nil
 		}
 		value,data,newnode, didResolve, err = t.tryGet(n.Val, key, pos+len(n.Key))
@@ -160,9 +157,8 @@ func (t *Trie) tryGet(origNode node, key []byte, pos int) (value []byte,data []b
 		}
 		return value,data, n, didResolve, err
 	case *fullNode:
-		if pos == len(key){
+		if pos == len(key){                                //akshat :- if we have consumed entire key we have reached to a fullnode conatining value and data return both of them
 			return n.Children[0].(*shortNode).Val.(valueNode), n.Children[1].(*shortNode).Val.(valueNode), n, false, nil
-			//return n.Children[0], n.Children[1], n , false, nil
 			}
 
 		value,data, newnode, didResolve, err = t.tryGet(n.Children[key[pos]], key, pos+1)
@@ -190,7 +186,7 @@ func (t *Trie) tryGet(origNode node, key []byte, pos int) (value []byte,data []b
 //
 // The value bytes must not be modified by the caller while they are
 // stored in the trie.
-func (t *Trie) Update(key, value []byte,data []byte) {
+func (t *Trie) Update(key, value []byte,data []byte) {                         //akshat- update takes additional parameter called data(jsonld in our case)
 	if err := t.TryUpdate(key, value,data); err != nil {
 		log.Error(fmt.Sprintf("Unhandled trie error: %v", err))
 	}
@@ -208,10 +204,7 @@ func (t *Trie) TryUpdate(key, value []byte,data []byte) error {
 	k := keybytesToHex(key)
 	if len(value) != 0 {
 		var myKey[]byte
-		f := &fullNode{}
-		//term:=42
-		//f = f.copy()
-		//f.flags = t.newFlag()
+		f := &fullNode{}                                                               //akshat- add a full node to tree having 0th child as value and 1st child as data
 		f.Children[0] = &shortNode{append(myKey,16),append(valueNode{}, value...),t.newFlag()}
 		f.Children[1] = &shortNode{append(myKey,16),append(valueNode{}, data...),t.newFlag()}
 
@@ -233,7 +226,7 @@ func (t *Trie) TryUpdate(key, value []byte,data []byte) error {
 func (t *Trie) insert(n node, prefix, key []byte, value node) (bool, node, error) {
 	if len(key) == 0 {
 		if v, ok := n.(valueNode); ok {
-			return !bytes.Equal(v, value.(valueNode)), value, nil             //check
+			return !bytes.Equal(v, value.(valueNode)), value, nil            
 		}
 		return true, value, nil
 	}
@@ -409,8 +402,6 @@ func (t *Trie) delete(n node, prefix, key []byte) (bool, node, error) {
 
 	case valueNode:
 	    return true, nil, nil
-	//case modifiedNode:
-		//return true, nil, nil
 
 	case nil:
 		return false, nil, nil

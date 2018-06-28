@@ -1122,7 +1122,7 @@ func (pm *ProtocolManager) getAccount(statedb *state.StateDB, root, hash common.
 	if err != nil {
 		return state.Account{}, err
 	}
-	blob, err := trie.TryGet(hash[:])
+	blob,_,err := trie.TryGet(hash[:])            // akshat 
 	if err != nil {
 		return state.Account{}, err
 	}

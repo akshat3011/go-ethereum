@@ -183,7 +183,7 @@ func TestInsert(t *testing.T) {
 func TestGet(t *testing.T) {
 	trie := newEmpty()
 	updateString(trie, "doe", "reindeer","hiran")
-	updateString(trie, "dog", "puppy","kutta")
+	updateString(trie, "dog", "puppy","")
 	updateString(trie, "dogglesworth", "cat","billi")
 
 	for i := 0; i < 2; i++ {

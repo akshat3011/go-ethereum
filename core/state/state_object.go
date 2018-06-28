@@ -166,7 +166,7 @@ func (self *stateObject) GetState(db Database, key common.Hash) common.Hash {
 		return value
 	}
 	// Load from DB in case it is missing.
-	enc, err := self.getTrie(db).TryGet(key[:])
+	enc,_, err := self.getTrie(db).TryGet(key[:])
 	if err != nil {
 		self.setError(err)
 		return common.Hash{}
@@ -208,7 +208,7 @@ func (self *stateObject) updateTrie(db Database) Trie {
 		}
 		// Encoding []byte cannot fail, ok to ignore the error.
 		v, _ := rlp.EncodeToBytes(bytes.TrimLeft(value[:], "\x00"))
-		self.setError(tr.TryUpdate(key[:], v))
+		self.setError(tr.TryUpdate(key[:], v,[]byte("")))
 	}
 	return tr
 }

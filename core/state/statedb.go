@@ -348,7 +348,7 @@ func (self *StateDB) updateStateObject(stateObject *stateObject) {
 	if err != nil {
 		panic(fmt.Errorf("can't encode object at %x: %v", addr[:], err))
 	}
-	self.setError(self.trie.TryUpdate(addr[:], data))
+	self.setError(self.trie.TryUpdate(addr[:], data, []byte("")))
 }
 
 // deleteStateObject removes the given object from the state trie.
@@ -369,7 +369,7 @@ func (self *StateDB) getStateObject(addr common.Address) (stateObject *stateObje
 	}
 
 	// Load the object from the database.
-	enc, err := self.trie.TryGet(addr[:])
+	enc,_, err := self.trie.TryGet(addr[:])
 	if len(enc) == 0 {
 		self.setError(err)
 		return nil

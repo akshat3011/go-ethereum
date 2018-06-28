@@ -20,7 +20,7 @@ import (
 	"bytes"
 	"container/heap"
 	"errors"
-	"fmt"
+//	"fmt"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -135,6 +135,8 @@ func (e seekError) Error() string {
 	return "seek error: " + e.err.Error()
 }
 
+
+
 func newNodeIterator(trie *Trie, start []byte) NodeIterator {
 	if trie.Hash() == emptyState {
 		return new(nodeIterator)
@@ -159,43 +161,113 @@ func (it *nodeIterator) Parent() common.Hash {
 }
 
 func (it *nodeIterator) Leaf() bool {
-	
-	if len(it.stack) > 0 {
-		n := it.stack[len(it.stack)-1].node
-		switch n.(type) {
-			case *fullNode:
-					return (hasTerm(it.path))
-			
-		}
-		return false
-	}
-	return (hasTerm(it.path))
 
+	if !hasTwoTerm(it.path){
+		return hasTerm(it.path)
+	}
+	return false
 }
 
 func (it *nodeIterator) LeafKey() []byte {
 	if len(it.stack) > 0 {
-		if _, ok := it.stack[len(it.stack)-1].node.(*fullNode); ok {         //akshat - now leaves are logically full nodes
+		if _, ok := it.stack[len(it.stack)-1].node.(valueNode); ok {
 			return hexToKeybytes(it.path)
+		}
+		if _, ok := it.stack[len(it.stack)-1].node.(*fullNode); ok {        
+					return hexToKeybytes(it.path)
+				}
+	}
+	panic("not at leaf")
+}
+/*
+func (it *nodeIterator) LeafBlob() []byte {
+	if len(it.stack) > 0 {
+		if node, ok := it.stack[len(it.stack)-1].node.(valueNode); ok {
+			return []byte(node)
 		}
 	}
 	panic("not at leaf")
 }
-
-func (it *nodeIterator) LeafBlob() []byte {
+*/
+/*func (it *nodeIterator) Leaf() bool {
+	fmt.Println(it.path)
 	if len(it.stack) > 0 {
-		if node, ok := it.stack[len(it.stack)-1].node.(*fullNode).Children[0].(*shortNode).Val.(valueNode); ok {           // akshat:- leaves value is 0th child shortnode value
-			return []byte(node)
+		n := it.stack[len(it.stack)-1].node
+		switch n.(type) {
+			case *fullNode:
+				print("hell")
+					return (hasTerm(it.path))
+			case *valueNode:
+				print("damn")
+					return (hasTerm(it.path))
+			case *shortNode:
+				print("picalo")
+				fmt.Println((it.path))
+				return(hasTerm(it.path))
+			default
+			
 		}
 	}
+		return false
+
+}*/
+/*
+func (it *nodeIterator) LeafKey() []byte {
+	//n := it.stack[len(it.stack)-1].node
+	if len(it.stack) > 0 {
+		
+		
+					if _, ok := it.stack[len(it.stack)-1].node.(*fullNode); ok {        
+						return hexToKeybytes(it.path)
+					}
+
+					if _, ok := it.stack[len(it.stack)-1].node.(*valueNode); ok {         //akshat - now leaves are logically full nodes
+						return hexToKeybytes(it.path)
+					}
+	}
+	print("sim")
+	panic("not at leaf")
+	}
+*/
+
+func (it *nodeIterator) LeafBlob() []byte {
+
+
+	if len(it.stack) > 0 {
+		n := it.stack[len(it.stack)-1].node
+		switch n.(type) {
+			case *fullNode:
+				//print("hell")
+				if node, ok := it.stack[len(it.stack)-1].node.(*fullNode).Children[0].(*shortNode).Val.(valueNode); ok {           // akshat:- leaves value is 0th child shortnode value
+				return []byte(node)
+			}
+		}
+	
+					if node, ok := it.stack[len(it.stack)-1].node.(valueNode); ok {
+						return []byte(node)
+					}
+		
+		
+	}
+	//print("latino")
 	panic("not at leaf")
 }
 func (it *nodeIterator) LeafData() []byte {
 	if len(it.stack) > 0 {
-		if node, ok := it.stack[len(it.stack)-1].node.(*fullNode).Children[1].(*shortNode).Val.(valueNode); ok {
-			return []byte(node)
+		n := it.stack[len(it.stack)-1].node
+		switch n.(type) {
+			case *fullNode:
+				//print("hell")
+				if node, ok := it.stack[len(it.stack)-1].node.(*fullNode).Children[0].(*shortNode).Val.(valueNode); ok {           // akshat:- leaves value is 0th child shortnode value
+				return []byte(node)
+			}
 		}
+	
+		return nil
+		
+		
 	}
+	//print("latino")
 	panic("not at leaf")
 }
 

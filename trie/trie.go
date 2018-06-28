@@ -140,12 +140,16 @@ func (t *Trie) TryGet(key []byte) ([]byte,[]byte, error) {
 }
 
 func (t *Trie) tryGet(origNode node, key []byte, pos int) (value []byte,data []byte,newnode node, didResolve bool, err error) {
+	// print("diamond district")
 	switch n := (origNode).(type) {
 	case nil:
 		return nil, nil, nil, false, nil
 	case valueNode:
+		//print("valueNode")
 		return n,nil,n, false, nil
 	case *shortNode:
+		//	print("shortNode")
+		//	fmt.Println(key)   
 		if len(key)-pos < len(n.Key) || !bytes.Equal(n.Key, key[pos:pos+len(n.Key)]) {
 			return nil,nil, n, false, nil
 		}
@@ -157,7 +161,11 @@ func (t *Trie) tryGet(origNode node, key []byte, pos int) (value []byte,data []b
 		}
 		return value,data, n, didResolve, err
 	case *fullNode:
-		if pos == len(key){                                //akshat :- if we have consumed entire key we have reached to a fullnode conatining value and data return both of them
+	//	print("fullnode")
+	//	fmt.Println()
+		//fmt.Println(key)   
+		if pos == len(key){  
+			//fmt.Println(key)                             //akshat :- if we have consumed entire key we have reached to a fullnode conatining value and data return both of them
 			return n.Children[0].(*shortNode).Val.(valueNode), n.Children[1].(*shortNode).Val.(valueNode), n, false, nil
 			}
 
@@ -203,16 +211,24 @@ func (t *Trie) Update(key, value []byte,data []byte) {                         /
 func (t *Trie) TryUpdate(key, value []byte,data []byte) error {
 	k := keybytesToHex(key)
 	if len(value) != 0 {
-		var myKey[]byte
-		f := &fullNode{}                                                               //akshat- add a full node to tree having 0th child as value and 1st child as data
-		f.Children[0] = &shortNode{append(myKey,16),append(valueNode{}, value...),t.newFlag()}
-		f.Children[1] = &shortNode{append(myKey,16),append(valueNode{}, data...),t.newFlag()}
+		if len(data)!=0{
+			var myKey[]byte
+			f := &fullNode{}                                                               //akshat- add a full node to tree having 0th child as value and 1st child as data
+			f.Children[0] = &shortNode{append(myKey,16),append(valueNode{}, value...),t.newFlag()}
+			f.Children[1] = &shortNode{append(myKey,16),append(valueNode{}, data...),t.newFlag()}
+			_, n, err := t.insert(t.root, nil, k, f)
+			if err != nil {
+				return err
+			}
+			t.root = n
+		} else{
 
-		_, n, err := t.insert(t.root, nil, k, f)
-		if err != nil {
-			return err
+			_, n, err := t.insert(t.root, nil, k, valueNode(value))
+			if err != nil {
+				return err
+			}
+			t.root = n
 		}
-		t.root = n
 	} else {
 		_, n, err := t.delete(t.root, nil, k)
 		if err != nil {

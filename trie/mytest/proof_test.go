@@ -22,7 +22,7 @@ import (
 	mrand "math/rand"
 	"testing"
 	"time"
-
+	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethdb"
@@ -65,6 +65,7 @@ func TestProof(t *testing.T) {
 			if proof == nil {
 				t.Fatalf("prover %d: missing key %x while constructing proof", i, kv.k)
 			}
+			fmt.Println(keybytesToHex(kv.k))
 			val, _, err := VerifyProof(root, kv.k, proof)
 			if err != nil {
 				t.Fatalf("prover %d: failed to verify proof for key %x: %v\nraw proof: %x", i, kv.k, err, proof)
@@ -81,6 +82,7 @@ func TestOneElementProof(t *testing.T) {
 	updateString(trie, "k", "v","d")
 	for i, prover := range makeProvers(trie) {
 		proof := prover([]byte("k"))
+		
 		if proof == nil {
 			t.Fatalf("prover %d: nil proof", i)
 		}

@@ -29,8 +29,8 @@ import (
 func TestIterator(t *testing.T) {
 	trie := newEmpty()
 	vals := []struct{ k, v, d string }{
-		{"do", "verb","act"},
-		{"ether", "wookiedoo","check"},
+		{"do", "verb",""},
+		{"ether", "wookiedoo",""},
 		{"horse", "stallion","lift"},
 		{"shaman", "horse","ssid"},
 		{"doge", "coin","labra"},
@@ -179,6 +179,8 @@ func TestIteratorSeek(t *testing.T) {
 
 func checkIteratorOrder(want []kvs, it *Iterator) error {
 	for it.Next() {
+
+		//fmt.Print(string(it.Key))
 		if len(want) == 0 {
 			return fmt.Errorf("didn't expect any more values, got key %q", it.Key)
 		}
@@ -291,10 +293,9 @@ func TestIteratorContinueAfterErrorMemonly(t *testing.T) { testIteratorContinueA
 func testIteratorContinueAfterError(t *testing.T, memonly bool) {
 	diskdb := ethdb.NewMemDatabase()
 	triedb := NewDatabase(diskdb)
-
 	tr, _ := New(common.Hash{}, triedb)
 	for _, val := range testdata1 {
-		tr.Update([]byte(val.k), []byte(val.v),[]byte("kill"))
+		tr.Update([]byte(val.k), []byte(val.v),[]byte(""))
 	}
 	tr.Commit(nil)
 	if !memonly {
@@ -318,6 +319,7 @@ func testIteratorContinueAfterError(t *testing.T, memonly bool) {
 		tr, _ := New(tr.Hash(), triedb)
 		//fmt.Println(i)
 		checkIteratorNoDups(t, tr.NodeIterator(nil), nil)
+
 		// Remove a random node from the database. It can't be the root node
 		// because that one is already loaded.
 		var (
@@ -341,7 +343,7 @@ func testIteratorContinueAfterError(t *testing.T, memonly bool) {
 			robj = triedb.nodes[rkey]
 			delete(triedb.nodes, rkey)
 		} else {
-			//fmt.Println("i sasa")
+			
 			rval, _ = diskdb.Get(rkey[:])
 			//fmt.Println(string(rval))
 		//	fmt.Println("i sasa22")
@@ -445,7 +447,7 @@ func testIteratorContinueAfterSeekError(t *testing.T, memonly bool) {
 }
 
 func checkIteratorNoDups(t *testing.T, it NodeIterator, seen map[string]bool) int {
-	//fmt.Println(seen)
+	//fmt.Println("entered")
 	if seen == nil {
 		seen = make(map[string]bool)
 	}
@@ -456,6 +458,6 @@ func checkIteratorNoDups(t *testing.T, it NodeIterator, seen map[string]bool) in
 		}
 		seen[string(it.Path())] = true
 	}
-	//fmt.Println(len(seen))
+	//fmt.Println("leave")
 	return len(seen)
 }

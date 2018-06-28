@@ -107,6 +107,19 @@ func prefixLen(a, b []byte) int {
 	}
 	return i
 }
+func hasTwoTerm(s[]byte) bool {
+	count:=0
+	for i:=0;i<len(s);i++{
+		if s[i]==16{
+			count =count +1
+		}
+	}
+	if count==2{
+		return true
+	} else { 
+		return false
+	}
+}
 
 // hasTerm returns whether a hex key has the terminator flag.
 func hasTerm(s []byte) bool {

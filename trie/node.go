@@ -118,7 +118,7 @@ func mustDecodeNode(hash, buf []byte, cachegen uint16) node {
 
 // decodeNode parses the RLP encoding of a trie node.
 func decodeNode(hash, buf []byte, cachegen uint16) (node, error) {
-
+	//fmt.Println("ela cosa")
 	if len(buf) == 0 {
 		return nil, io.ErrUnexpectedEOF
 	}
@@ -139,7 +139,9 @@ func decodeNode(hash, buf []byte, cachegen uint16) (node, error) {
 }
 
 func decodeShort(hash, elems []byte, cachegen uint16) (node, error) {
+	//fmt.Println("sdecodeShort")
 	kbuf, rest, err := rlp.SplitString(elems)
+	//	fmt.Println(rest)
 	k, _, _, err := rlp.Split(rest)
 	if err != nil {
 		return nil, err
@@ -151,7 +153,11 @@ func decodeShort(hash, elems []byte, cachegen uint16) (node, error) {
        /* akshat -  this code will be called when we have reached leaves but even 
        our full node containing leaves has a terminator 
        but will be a list so it doesnt get executed for full node*/
-		if len(key) == 1 && k != rlp.List {
+       //fmt.Println("here")
+       //fmt.Println(key)
+       //fmt.Println(string(rest))
+       //fmt.Println(k)
+		if k != rlp.List {
 			val, _, err := rlp.SplitString(rest)
 			if err != nil {
 				return nil, fmt.Errorf("invalid value node: %v", err)
@@ -174,6 +180,7 @@ func decodeShort(hash, elems []byte, cachegen uint16) (node, error) {
 
 
 func decodeFull(hash, elems []byte, cachegen uint16) (*fullNode, error) {
+	//fmt.Println("decodefull")
 	n := &fullNode{flags: nodeFlag{hash: hash, gen: cachegen}}
 	for i := 0; i < 16; i++ {
 		//fmt.Println(i)
@@ -187,7 +194,10 @@ func decodeFull(hash, elems []byte, cachegen uint16) (*fullNode, error) {
 		n.Children[i], elems = cld, rest
 
 	}
-	if len(elems)>1{ 					//akshat- this means the fullnode has a value in value field that is at index 16 in children list 
+	//fmt.Println("babt ")
+	//fmt.Println(elems)
+	if len(elems)>1{ 
+					//akshat- this means the fullnode has a value in value field that is at index 16 in children list 
 		cld, _, err := decodeRef(elems, cachegen)
 
 		if err != nil {
@@ -209,7 +219,7 @@ func decodeFull(hash, elems []byte, cachegen uint16) (*fullNode, error) {
 const hashLen = len(common.Hash{})
 
 func decodeRef(buf []byte, cachegen uint16) (node, []byte, error) {
-	
+	//fmt.Println("decodeRef")
 	kind, val, rest, err := rlp.Split(buf)
 	
 	if err != nil {

@@ -256,9 +256,10 @@ func (t *Trie) insert(n node, prefix, key []byte, value node) (bool, node, error
 		case *fullNode:
 			switch n.(type){
 				case *fullNode:
-				if v, ok := n.(*fullNode).Children[0].(*shortNode).Val.(valueNode); ok {
+				if v, ok := n.(*fullNode); ok {
 				//fmt.Println("played")
-				return !bytes.Equal(v,value.(*fullNode).Children[0].(*shortNode).Val.(valueNode)), value, nil            
+				return !(bytes.Equal(v.Children[0].(*shortNode).Val.(valueNode),value.(*fullNode).Children[0].(*shortNode).Val.(valueNode)) && 
+					bytes.Equal(v.Children[1].(*shortNode).Val.(valueNode),value.(*fullNode).Children[1].(*shortNode).Val.(valueNode))) , value, nil            
 			}
 				default:
 					return true, value, nil	  

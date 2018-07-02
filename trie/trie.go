@@ -241,10 +241,32 @@ func (t *Trie) TryUpdate(key, value []byte,data []byte) error {
 
 func (t *Trie) insert(n node, prefix, key []byte, value node) (bool, node, error) {
 	if len(key) == 0 {
-		if v, ok := n.(valueNode); ok {
-			return !bytes.Equal(v, value.(valueNode)), value, nil            
+		//fmt.Println("sky full of stars")
+		switch value.(type){
+		case valueNode:
+			switch n.(type){
+				case valueNode:
+					if v, ok := n.(valueNode); ok {
+						return !bytes.Equal(v, value.(valueNode)), value, nil            
+					}
+				default:
+					return true, value, nil	  
+
+			}	                 // akshat update 
+		case *fullNode:
+			switch n.(type){
+				case *fullNode:
+				if v, ok := n.(*fullNode).Children[0].(*shortNode).Val.(valueNode); ok {
+				//fmt.Println("played")
+				return !bytes.Equal(v,value.(*fullNode).Children[0].(*shortNode).Val.(valueNode)), value, nil            
+			}
+				default:
+					return true, value, nil	  
+
+			}
 		}
-		return true, value, nil
+
+			
 	}
 	switch n := n.(type) {
 	case *shortNode:

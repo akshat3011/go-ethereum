@@ -259,15 +259,15 @@ func TestReplication(t *testing.T) {
 	trie := newEmpty()
 	vals := []struct{ k, v string }{
 		{"do", "verb"},
-		{"ether", "wookiedoo"},
-		{"horse", "stallion"},
-		{"shaman", "horse"},
-		{"doge", "coin"},
-		{"dog", "puppy"},
-		{"somethingveryoddindeedthis is", "myothernodedata"},
+		//{"ether", "wookiedoo"},
+		//{"horse", "stallion"},
+		//{"shaman", "horse"},
+		//{"doge", "coin"},
+		//{"dog", "puppy"},
+		//{"somethingveryoddindeedthis is", "myothernodedata"},
 	}
 	for _, val := range vals {
-		updateString(trie, val.k, val.v,"testdata")
+		updateString(trie, val.k, val.v,"")
 	}
 	exp, err := trie.Commit(nil)
 	if err != nil {
@@ -282,8 +282,8 @@ func TestReplication(t *testing.T) {
 		t.Fatalf("can't recreate trie at %x: %v", exp, err)
 	}
 	for _, kv := range vals {
-		a,_:=getString(trie2, kv.k)
-		fmt.Println(string(a))
+		a,_:= getString(trie2, kv.k)
+		//fmt.Println(string(a))
 		if string(a) != kv.v {
 			t.Errorf("trie2 doesn't have %q => %q", kv.k, kv.v)
 		}
@@ -297,18 +297,18 @@ func TestReplication(t *testing.T) {
 	}
 	// perform some insertions on the new trie.
 	vals2 := []struct{ k, v string }{
-		{"do", "verb"},
-		{"ether", "wookiedoo"},
-		{"horse", "stallion"},
-		{"shaman", "horse"},
-		{"doge", "coin"},
-		{"ether", ""},
-		{"dog", "puppy"},
-		{"somethingveryoddindeedthis is", "myothernodedata"},
-		{"shaman", ""},
+		{"do", "kill"},
+		//{"ether", "wookiedoo"},
+		//{"horse", "stallion"},
+		//{"shaman", "horse"},
+		//{"doge", "coin"},
+		//{"ether", ""},
+		//{"dog", "puppy"},
+		//{"somethingveryoddindeedthis is", "myothernodedata"},
+		//{"shaman", ""},
 	}
 	for _, val := range vals2 {
-		updateString(trie2, val.k, val.v,"testdata")
+		updateString(trie2, val.k, val.v,"ww")
 	}
 	if hash := trie2.Hash(); hash != exp {
 		t.Errorf("root failure. expected %x got %x", exp, hash)

@@ -198,13 +198,13 @@ func checkIteratorOrder(want []kvs, it *Iterator) error {
 func TestDifferenceIterator(t *testing.T) {
 	triea := newEmpty()
 	for _, val := range testdata1 {
-		triea.Update([]byte(val.k), []byte(val.v),[]byte("cat"))
+		triea.Update([]byte(val.k), []byte(val.v),[]byte(""))
 	}
 	triea.Commit(nil)
 
 	trieb := newEmpty()
 	for _, val := range testdata2 {
-		trieb.Update([]byte(val.k), []byte(val.v),[]byte("cat"))
+		trieb.Update([]byte(val.k), []byte(val.v),[]byte(""))
 	}
 	trieb.Commit(nil)
 
@@ -234,13 +234,13 @@ func TestDifferenceIterator(t *testing.T) {
 func TestUnionIterator(t *testing.T) {
 	triea := newEmpty()
 	for _, val := range testdata1 {
-		triea.Update([]byte(val.k), []byte(val.v),[]byte("cat"))
+		triea.Update([]byte(val.k), []byte(val.v),[]byte(""))
 	}
 	triea.Commit(nil)
 
 	trieb := newEmpty()
 	for _, val := range testdata2 {
-		trieb.Update([]byte(val.k), []byte(val.v),[]byte("cat"))
+		trieb.Update([]byte(val.k), []byte(val.v),[]byte(""))
 	}
 	trieb.Commit(nil)
 
